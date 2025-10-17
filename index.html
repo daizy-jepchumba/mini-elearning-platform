@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini E-Learning Platform</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f7f9fc;
+      color: #333;
+    }
+
+    header {
+      background: #4a4de7;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 1.5rem;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 900px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Login and Signup */
+    .auth-container {
+      text-align: center;
+    }
+
+    .auth-container input {
+      width: 80%;
+      max-width: 300px;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #4a4de7;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #3739c9;
+    }
+
+    .switch-link {
+      display: block;
+      margin-top: 10px;
+      color: #4a4de7;
+      cursor: pointer;
+    }
+
+    /* Course list */
+    .course-card {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .course-card:hover {
+      background: #f0f4ff;
+    }
+
+    .course-card.completed {
+      background: #d3ffd3;
+    }
+
+    .lesson-list li {
+      margin-bottom: 8px;
+    }
+
+    .back-btn {
+      background: #aaa;
+      margin-bottom: 10px;
+    }
+
+    .logout-btn {
+      float: right;
+      background: #e74c3c;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    📚 Mini E-Learning Platform
+    <button class="logout-btn hidden" id="logoutBtn">Logout</button>
+  </header>
+
+  <div class="container">
+
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="auth-container">
+      <h2>Welcome Back!</h2>
+      <input type="text" id="loginUsername" placeholder="Username" required><br>
+      <input type="password" id="loginPassword" placeholder="Password" required><br>
+      <button onclick="login()">Login</button>
+      <span class="switch-link" onclick="showSignup()">Don't have an account? Sign up</span>
+    </div>
+
+    <!-- SIGNUP PAGE -->
+    <div id="signupPage" class="auth-container hidden">
+      <h2>Create an Account</h2>
+      <input type="text" id="signupUsername" placeholder="Username" required><br>
+      <input type="password" id="signupPassword" placeholder="Password" required><br>
+      <button onclick="signup()">Sign Up</button>
+      <span class="switch-link" onclick="showLogin()">Already have an account? Login</span>
+    </div>
+
+    <!-- COURSE LIST PAGE -->
+    <div id="courseList" class="hidden">
+      <h2>Available Courses</h2>
+      <div id="courses"></div>
+    </div>
+
+    <!-- COURSE DETAILS PAGE -->
+    <div id="courseDetails" class="hidden">
+      <button class="back-btn" onclick="showCourseList()">⬅ Back</button>
+      <h2 id="courseTitle"></h2>
+      <ul id="lessonList" class="lesson-list"></ul>
+      <p id="progress"></p>
+      <button id="completeBtn">Mark as Completed</button>
+    </div>
+  </div>
+
+  <script>
+    // --- COURSE DATA ---
+    const courses = [
+      {
+        id: 1,
+        title: "HTML Basics",
+        lessons: ["Introduction to HTML", "HTML Elements", "Forms and Links"],
+        completed: false
+      },
+      {
+        id: 2,
+        title: "CSS Fundamentals",
+        lessons: ["Selectors and Properties", "Box Model", "Flexbox Layout"],
+        completed: false
+      },
+      {
+        id: 3,
+        title: "JavaScript Essentials",
+        lessons: ["Variables and Data Types", "Functions", "DOM Manipulation"],
+        completed: false
+      }
+    ];
+
+    // --- PAGE ELEMENTS ---
+    const loginPage = document.getElementById("loginPage");
+    const signupPage = document.getElementById("signupPage");
+    const courseList = document.getElementById("courseList");
+    const courseDetails = document.getElementById("courseDetails");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const coursesContainer = document.getElementById("courses");
+    const courseTitle = document.getElementById("courseTitle");
+    const lessonList = document.getElementById("lessonList");
+    const progress = document.getElementById("progress");
+    const completeBtn = document.getElementById("completeBtn");
+
+    // --- SIGNUP & LOGIN LOGIC ---
+    function showSignup() {
+      loginPage.classList.add("hidden");
+      signupPage.classList.remove("hidden");
+    }
+
+    function showLogin() {
+      signupPage.classList.add("hidden");
+      loginPage.classList.remove("hidden");
+    }
+
+    function signup() {
+      const username = document.getElementById("signupUsername").value.trim();
+      const password = document.getElementById("signupPassword").value.trim();
+
+      if (!username || !password) {
+        alert("Please fill in all fields!");
+        return;
+      }
+
+      localStorage.setItem("user", JSON.stringify({ username, password }));
+      alert("Account created successfully! You can now log in.");
+      showLogin();
+    }
+
+    function login() {
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+
+      if (!storedUser || storedUser.username !== username || storedUser.password !== password) {
+        alert("Invalid credentials. Please try again or sign up.");
+        return;
+      }
+
+      alert(`Welcome back, ${username}!`);
+      loginPage.classList.add("hidden");
+      courseList.classList.remove("hidden");
+      logoutBtn.classList.remove("hidden");
+      loadCourses();
+    }
+
+    function logout() {
+      alert("You have been logged out.");
+      logoutBtn.classList.add("hidden");
+      courseList.classList.add("hidden");
+      courseDetails.classList.add("hidden");
+      loginPage.classList.remove("hidden");
+    }
+
+    logoutBtn.addEventListener("click", logout);
+
+    // --- COURSE FUNCTIONS ---
+    function loadCourses() {
+      coursesContainer.innerHTML = "";
+      courses.forEach(course => {
+        const div = document.createElement("div");
+        div.classList.add("course-card");
+        if (course.completed) div.classList.add("completed");
+        div.textContent = course.title;
+        div.onclick = () => showCourseDetails(course.id);
+        coursesContainer.appendChild(div);
+      });
+    }
+
+    function showCourseDetails(id) {
+      const course = courses.find(c => c.id === id);
+      courseList.classList.add("hidden");
+      courseDetails.classList.remove("hidden");
+
+      courseTitle.textContent = course.title;
+      lessonList.innerHTML = course.lessons.map(l => `<li>${l}</li>`).join("");
+      progress.textContent = course.completed ? "Status: ✅ Completed" : "Status: ⏳ In Progress";
+
+      completeBtn.onclick = () => markCompleted(course.id);
+    }
+
+    function markCompleted(id) {
+      const course = courses.find(c => c.id === id);
+      course.completed = true;
+      alert(`${course.title} marked as completed!`);
+      showCourseList();
+    }
+
+    function showCourseList() {
+      courseDetails.classList.add("hidden");
+      courseList.classList.remove("hidden");
+      loadCourses();
+    }
+
+  </script>
+</body>
+</html>
